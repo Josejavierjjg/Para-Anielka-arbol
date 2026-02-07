@@ -1,0 +1,205 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Para Anielka</title>
+    <link rel="shortcut icon" href="love.ico" type="image/x-icon">
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/jscex.min.js"></script>
+    <script type="text/javascript" src="js/jscex-parser.js"></script>
+    <script type="text/javascript" src="js/jscex-jit.js"></script>
+    <script type="text/javascript" src="js/jscex-builderbase.min.js"></script>
+    <script type="text/javascript" src="js/jscex-async.min.js"></script>
+    <script type="text/javascript" src="js/jscex-async-powerpack.min.js"></script>
+    <script type="text/javascript" src="js/functions.js" charset="utf-8"></script>
+    <script type="text/javascript" src="js/love.js" charset="utf-8"></script>
+    <style type="text/css">
+        body{margin:0;padding:0;background:#ffe;font-size:14px;font-family:'Arial',sans-serif;color:#231F20;overflow:auto}
+        #main{width:100%;}
+        #wrap{position:relative;margin:0 auto;width:1100px;height:700px;margin-top:10px;}
+        #code{display:none;position:absolute;top:45px;left:0px;width:445px;height:400px;font-size:16px;line-height:28px;}
+        #code .placeholder{margin-left:15px}
+        #clock-box{position:absolute;left:10px;top:560px;font-size:24px;display:none;z-index:100; white-space: nowrap;}
+        #clock{display: block; margin-top: 10px;}
+        #clock .digit{font-size:48px;}
+        #canvas{margin:0 auto;width:1100px;height:700px;}
+        #error{display:none;width:100%;background:#ff0;text-align:center;padding:5px;}
+        .hand{cursor:pointer;}
+    </style>
+</head>
+<body>
+    <audio id="music" loop>
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="main">
+        <div id="error">Tu navegador no soporta el lienzo (Canvas).</div>
+        <div id="wrap">
+            <div id="code">
+                Dejaré esta página aquí como evidencia de que fuiste y eres muy especial para mí.<br />
+                <br />
+               ¿Sabe algo? A veces regreso en silencio a aquel primer mensaje que le escribí… a esa historia donde todo empezó<br />
+                <br />
+                No porque viva del pasado, sino porque ahí recuerdo quién fui, cuando me animé a sentir sin miedo<br />
+                <br />
+                Ese día no sabía qué iba a pasar, solo sabía que quería escribirle bonito y desde el alma<br />
+                Y aunque hoy las cosas sean distintas, ese recuerdo sigue intacto… porque fue real, fue sincero, fue mío<br />
+                <br />
+                <span class="placeholder"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-- Anielka --
+            </div>
+            <div id="clock-box">
+                Llevamos juntos...
+                <div id="clock"></div>
+            </div>
+            <canvas id="canvas" width="1100" height="700"></canvas>
+        </div>
+    </div>
+
+    <script>
+    (function(){
+        $.fn.typewriter = function() {
+            this.each(function() {
+                var $ele = $(this), str = $ele.html(), progress = 0;
+                $ele.html('');
+                var timer = setInterval(function() {
+                    var current = str.substr(progress, 1);
+                    if (current == '<') {
+                        progress = str.indexOf('>', progress) + 1;
+                    } else {
+                        progress++;
+                    }
+                    $ele.html(str.substring(0, progress) + (progress & 1 ? '_' : ''));
+                    if (progress >= str.length) {
+                        clearInterval(timer);
+                    }
+                }, 40); // VELOCIDAD: Bajado de 75ms a 40ms para que sea más rápido
+            });
+            return this;
+        };
+
+        var canvas = $('#canvas');
+        var audio = document.getElementById("music");
+        
+        if (!canvas[0].getContext) {
+            $("#error").show();
+            return false;
+        }
+
+        var width = canvas.width();
+        var height = canvas.height();
+        canvas.attr("width", width);
+        canvas.attr("height", height);
+
+        var opts = {
+            seed: { x: width / 2 - 20, color: "rgb(190, 26, 37)", scale: 2 },
+            branch: [ [535, 680, 570, 250, 500, 200, 30, 100, [ [540, 500, 455, 417, 340, 400, 13, 100, [ [450, 435, 434, 430, 394, 395, 2, 40] ] ], [550, 445, 600, 356, 680, 345, 12, 100, [ [578, 400, 648, 409, 661, 426, 3, 80] ] ], [539, 281, 537, 248, 534, 217, 3, 40], [546, 397, 413, 247, 328, 244, 9, 80, [ [427, 286, 383, 253, 371, 205, 2, 40], [498, 345, 435, 315, 395, 330, 4, 60] ] ], [546, 357, 608, 252, 678, 221, 6, 100, [ [590, 293, 646, 277, 648, 271, 2, 80] ] ] ] ] ],
+            bloom: { num: 700, width: 1080, height: 650 },
+            footer: { width: 1200, height: 5, speed: 10 }
+        };
+
+        var tree = new Tree(canvas[0], width, height, opts);
+        var seed = tree.seed;
+        var foot = tree.footer;
+        var hold = 1;
+
+        canvas.click(function(e) {
+            var offset = canvas.offset(), x, y;
+            x = e.pageX - offset.left;
+            y = e.pageY - offset.top;
+            if (seed.hover(x, y)) {
+                hold = 0; 
+                canvas.unbind("click");
+                canvas.unbind("mousemove");
+                canvas.removeClass('hand');
+                if (audio) {
+                    audio.play().catch(function(error) {
+                        console.log("Audio play failed: ", error);
+                    });
+                }
+            }
+        }).mousemove(function(e) {
+            var offset = canvas.offset(), x, y;
+            x = e.pageX - offset.left;
+            y = e.pageY - offset.top;
+            canvas.toggleClass('hand', seed.hover(x, y));
+        });
+
+        var seedAnimate = eval(Jscex.compile("async", function () {
+            seed.draw();
+            while (hold) { $await(Jscex.Async.sleep(10)); }
+            while (seed.canScale()) { seed.scale(0.95); $await(Jscex.Async.sleep(10)); }
+            while (seed.canMove()) { seed.move(0, 2); foot.draw(); $await(Jscex.Async.sleep(10)); }
+        }));
+
+        var growAnimate = eval(Jscex.compile("async", function () {
+            do { tree.grow(); $await(Jscex.Async.sleep(10)); } while (tree.canGrow());
+        }));
+
+        var flowAnimate = eval(Jscex.compile("async", function () {
+            do { tree.flower(2); $await(Jscex.Async.sleep(10)); } while (tree.canFlower());
+        }));
+
+        var moveAnimate = eval(Jscex.compile("async", function () {
+            tree.snapshot("p1", 240, 0, 610, 700);
+            while (tree.move("p1", 500, 0)) { foot.draw(); $await(Jscex.Async.sleep(10)); }
+            foot.draw();
+            tree.snapshot("p2", 500, 0, 610, 700);
+            canvas.parent().css("background", "url(" + tree.toDataURL('image/png') + ")");
+            canvas.css("background", "#ffe");
+            $await(Jscex.Async.sleep(300));
+            canvas.css("background", "none");
+        }));
+
+        var jumpAnimate = eval(Jscex.compile("async", function () {
+            while (true) {
+                tree.ctx.clearRect(0, 0, width, height);
+                tree.jump();
+                foot.draw();
+                $await(Jscex.Async.sleep(25));
+            }
+        }));
+
+        var textAnimate = eval(Jscex.compile("async", function () {
+            var together = new Date();
+            together.setFullYear(2025, 8, 3); 
+            together.setHours(0); together.setMinutes(0); together.setSeconds(0); together.setMilliseconds(0);
+
+            $("#code").show().typewriter();
+            $("#clock-box").fadeIn(500);
+            while (true) {
+                timeElapseSpanish(together);
+                $await(Jscex.Async.sleep(1000));
+            }
+        }));
+
+        function timeElapseSpanish(date){
+            var current = new Date();
+            var seconds = (Date.parse(current) - Date.parse(date)) / 1000;
+            var days = Math.floor(seconds / (3600 * 24));
+            seconds = seconds % (3600 * 24);
+            var hours = Math.floor(seconds / 3600);
+            if (hours < 10) hours = "0" + hours;
+            seconds = seconds % 3600;
+            var minutes = Math.floor(seconds / 60);
+            if (minutes < 10) minutes = "0" + minutes;
+            seconds = Math.floor(seconds % 60);
+            if (seconds < 10) seconds = "0" + seconds;
+
+            var result = " <span class=\"digit\">" + days + "</span> días <span class=\"digit\">" + hours + "</span> h <span class=\"digit\">" + minutes + "</span> m <span class=\"digit\">" + seconds + "</span> s"; 
+            $("#clock").html(result);
+        }
+
+        var runAsync = eval(Jscex.compile("async", function () {
+            $await(seedAnimate());
+            $await(growAnimate());
+            $await(flowAnimate());
+            $await(moveAnimate());
+            textAnimate().start();
+            $await(jumpAnimate());
+        }));
+
+        runAsync().start();
+    })();
+    </script>
+</body>
+</html>
